@@ -7,7 +7,6 @@ import {
   MessageComponentTypes,
 } from 'discord-interactions';
 import { VerifyDiscordRequest, getRandomEmoji, DiscordRequest } from './utils.js';
-import { getShuffledOptions, getResult } from './game.js';
 import {
   TEST_COMMAND,
   HasGuildCommands,
@@ -19,9 +18,6 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 // Parse request body and verifies incoming requests using discord-interactions package
 app.use(express.json({ verify: VerifyDiscordRequest(process.env.PUBLIC_KEY) }));
-
-// Store for in-progress games. In production, you'd want to use a DB
-const activeGames = {};
 
 /**
  * Interactions endpoint URL where Discord will send HTTP requests
@@ -55,6 +51,16 @@ app.post('/interactions', async function (req, res) {
         },
       });
     }
+
+    else if (name === 'channelperms') {
+      return res.send({
+        type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+        data: {
+          // Fetches a random emoji to send from a helper function
+          content: 'channelperms ' + req.body,
+        },
+      })
+    }
   }
 });
 
@@ -64,6 +70,5 @@ app.listen(PORT, () => {
   // Check if guild commands from commands.js are installed (if not, install them)
   HasGuildCommands(process.env.APP_ID, process.env.GUILD_ID, [
     TEST_COMMAND,
-    CHALLENGE_COMMAND,
   ]);
 });

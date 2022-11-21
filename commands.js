@@ -48,3 +48,55 @@ export const TEST_COMMAND = {
   description: 'Basic guild command',
   type: 1,
 };
+
+export const EDIT_CHANNEL_COMMAND = {
+  "name": "channelperms",
+  "type": 1,
+  "description": "Edit channel permissions. If you don't set a time, defaults to immediately.",
+  "options": [
+      {
+          "name": "channel",
+          "description": "The channel you want to edit",
+          "type": 7,
+          "required": true,
+      },
+      {
+        "name": "role",
+          "description": "The role whose permissions you want to edit",
+          "type": 8,
+          "required": true,
+      },
+      {
+          "name": "permission",
+          "description": "The permission you want to edit",
+          "type": 3,
+          "required": true
+      },
+      {
+          "name": "permission_level",
+          "description": "The permission level you want to set",
+          "type": 3,
+          "required": true,
+          "choices": [
+            {
+              "name": "Enabled",
+              "value": "enabled"
+            },
+            {
+              "name": "Disabled",
+              "value": "disabled"
+            },
+            {
+              "name": "Neutral",
+              "value": "neutral"
+            },
+          ]
+      },
+      {
+          "name": "time",
+          "description": "Schedule this command to run every day at the specified time.",
+          "type": 3,
+          "required": false
+      }
+  ]
+}
