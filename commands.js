@@ -42,14 +42,7 @@ export async function InstallGuildCommand(appId, guildId, command) {
   }
 }
 
-// Simple test command
-export const TEST_COMMAND = {
-  name: 'test',
-  description: 'Basic guild command',
-  type: 1,
-};
-
-export const EDIT_CHANNEL_COMMAND = {
+export const CHANNEL_PERMS_COMMAND = {
   "name": "channelperms",
   "type": 1,
   "description": "Edit channel permissions. If you don't set a time, defaults to immediately.",
@@ -80,15 +73,15 @@ export const EDIT_CHANNEL_COMMAND = {
           "choices": [
             {
               "name": "Enabled",
-              "value": "enabled"
+              "value": true
             },
             {
               "name": "Disabled",
-              "value": "disabled"
+              "value": false
             },
             {
               "name": "Neutral",
-              "value": "neutral"
+              "value": null
             },
           ]
       },
