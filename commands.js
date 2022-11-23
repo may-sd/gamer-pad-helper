@@ -73,15 +73,15 @@ export const CHANNEL_PERMS_COMMAND = {
           "choices": [
             {
               "name": "Enabled",
-              "value": true
+              "value": 'true'
             },
             {
               "name": "Disabled",
-              "value": false
+              "value": 'false'
             },
             {
               "name": "Neutral",
-              "value": null
+              "value": 'null'
             },
           ]
       },

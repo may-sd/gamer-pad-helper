@@ -1,6 +1,5 @@
 import 'dotenv/config';
 import express from 'express';
-import fetch from 'node-fetch';
 import {
   InteractionType,
   InteractionResponseType,
@@ -20,16 +19,47 @@ const PORT = process.env.PORT || 3000;
 // Parse request body and verifies incoming requests using discord-interactions package
 app.use(express.json({ verify: VerifyDiscordRequest(process.env.PUBLIC_KEY) }));
 
-import { Client, PermissionsBitField } from 'discord.js';
+const channelID = '1043739156838367242';
+const guildID = '675934988075532299';
+const roleID = '742973449755951135'
+import cron from 'node-cron';
 
+const morningStart = cron.schedule('0 10 * * *', () =>  {
+  const channel = client.channels.cache.get(channelID);
+  channel.permissionOverwrites.edit(roleID, { ViewChannel: true, Connect: true }
+  ).catch(console.log);
+  channel.send('Channel open. Live!');
+}, {
+  timezone: 'America/New_York'
+});
+
+const fiveminReminder = cron.schedule('55 23 * * *', () => {
+  const channel = client.channels.cache.get(channelID);
+  channel.send('This voice channel will shut down for the evening in 5 minutes (at midnight EST).');
+}, {
+  timezone: 'America/New_York'
+});
+
+const eveningEnd = cron.schedule('0 0 * * *', () => {
+  const channel = client.channels.cache.get(channelID);
+  channel.send('Channel closed. Kill.');
+  channel.permissionOverwrites.edit(roleID, { ViewChannel: false, Connect: false }
+  ).catch(console.log);
+  
+  channel.members.each((member) => {
+   member.voice.disconnect();
+  }).catch(console.log);
+}, {
+  timezone: 'America/New_York'
+});
+
+import { Client } from 'discord.js';
 const client = new Client({
     intents: [ (1 << 0), (1 << 9) ]
 });
-
 client.on('ready', () => {
   console.log(`Logged in as ${client.user.tag}!`);
 });
-
 //make sure this line is the last line
 client.login(process.env.DISCORD_TOKEN); //login bot using token
 
@@ -53,8 +83,15 @@ app.post('/interactions', async function (req, res) {
    */
   if (type === InteractionType.APPLICATION_COMMAND) {
     const { guild_id, name } = data;
-    let error = 'run successful';
     if (name === 'channelperms') {
+      return res.send({ // eventually want to check if you're admin, then run command as normal. else it'll return this
+        type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+        data: {
+          content: 'Command is currently disabled.',
+        },
+      })
+      
+      let error = 'run successful';
       const channel_id = data.options[0].value;
       const role_id = data.options[1].value;
       const permission = data.options[2].value;
@@ -69,8 +106,7 @@ app.post('/interactions', async function (req, res) {
         
       }
       else {
-        time = time.value;
-
+        error = "i haven't actually implemented this yet because i didn't want to work with databases. lol. lmao, even";
       }
       
       return res.send({
@@ -84,9 +120,8 @@ app.post('/interactions', async function (req, res) {
 });
 
 const parseBoolean = (str) => {
-  // i really have no idea why the str is 'enabled' when the value in commands.js is true, false, and null, but whatever. this works for its purpose
-  if (str === 'enabled') return true; 
-  if (str === 'disabled') return false;
+  if (str === 'true') return true; 
+  if (str === 'false') return false;
   return null;
 }
 
