@@ -19,49 +19,93 @@ const PORT = process.env.PORT || 3000;
 // Parse request body and verifies incoming requests using discord-interactions package
 app.use(express.json({ verify: VerifyDiscordRequest(process.env.PUBLIC_KEY) }));
 
+import Discord from 'discord.js';
+const client = new Discord.Client({
+    intents: [ 
+      Discord.GatewayIntentBits.Guilds,
+      Discord.GatewayIntentBits.GuildIntegrations,
+      Discord.GatewayIntentBits.GuildVoiceStates,
+      Discord.GatewayIntentBits.GuildMessages
+ ]
+});
+client.on('ready', () => {
+  console.log(`Logged in as ${client.user.tag}!`);
+});
+client.login(process.env.DISCORD_TOKEN); //login bot using token
+
 const channelID = '1043739156838367242';
 const guildID = '675934988075532299';
 const roleID = '742973449755951135'
 import cron from 'node-cron';
 
-const morningStart = cron.schedule('0 10 * * *', () =>  {
-  const channel = client.channels.cache.get(channelID);
-  channel.permissionOverwrites.edit(roleID, { ViewChannel: true, Connect: true }
-  ).catch(console.log);
-  channel.send('Channel open. Live!');
-}, {
-  timezone: 'America/New_York'
-});
+const MINUTES = 60000;
 
-const fiveminReminder = cron.schedule('55 23 * * *', () => {
+const openChannel = () => {
   const channel = client.channels.cache.get(channelID);
-  channel.send('This voice channel will shut down for the evening in 5 minutes (at midnight EST).');
-}, {
-  timezone: 'America/New_York'
-});
+  channel.permissionOverwrites.edit(roleID, { ViewChannel: true, Connect: true });
+}
 
-const eveningEnd = cron.schedule('0 0 * * *', () => {
+const closeChannel = () => {
   const channel = client.channels.cache.get(channelID);
-  channel.send('Channel closed. Kill.');
-  channel.permissionOverwrites.edit(roleID, { ViewChannel: false, Connect: false }
-  ).catch(console.log);
+
+  channel.permissionOverwrites.edit(roleID, { ViewChannel: false, Connect: false });
   
+  console.log('attempting dc...')
   channel.members.each((member) => {
+   console.log(member.user.tag);
    member.voice.disconnect();
-  }).catch(console.log);
+  });
+  console.log('dc attempted');
+}
+
+const reminder = () => {
+  const channel = client.channels.cache.get(channelID);
+  const currentDate = new Date();
+  const inFiveMinutes = new Date(currentDate.getTime() + 5*MINUTES);
+  const time = inFiveMinutes.toLocaleString('en-US', {
+    timeZone: 'America/New_York',
+    hour: 'numeric',
+    minute: 'numeric',
+    hour12: true
+  });
+  channel.send('This voice channel will shut down in 5 minutes (at ' + time + ').');
+}
+
+const streamReminder = cron.schedule('55 14 * * 6', () => {
+  reminder();
 }, {
   timezone: 'America/New_York'
 });
 
-import { Client } from 'discord.js';
-const client = new Client({
-    intents: [ (1 << 0), (1 << 9) ]
+const streamClose = cron.schedule('0 15 * * 6', () => {
+  closeChannel();
+}, {
+  timezone: 'America/New_York'
 });
-client.on('ready', () => {
-  console.log(`Logged in as ${client.user.tag}!`);
+
+const streamOpen = cron.schedule('0 22 * * 6', () => {
+  openChannel();
+}, {
+  timezone: 'America/New_York'
 });
-//make sure this line is the last line
-client.login(process.env.DISCORD_TOKEN); //login bot using token
+
+const morningOpen = cron.schedule('0 10 * * *', () =>  {
+  openChannel();
+}, {
+  timezone: 'America/New_York'
+});
+
+const eveningReminder = cron.schedule('54 23 * * *', () => {
+  reminder();
+}, {
+  timezone: 'America/New_York'
+});
+
+const eveningClose = cron.schedule('59 23 * * *', () => {
+  closeChannel();
+}, {
+  timezone: 'America/New_York'
+});
 
 /**
  * Interactions endpoint URL where Discord will send HTTP requests
@@ -130,6 +174,6 @@ app.listen(PORT, () => {
 
   // Check if guild commands from commands.js are installed (if not, install them)
   HasGuildCommands(process.env.APP_ID, process.env.GUILD_ID, [
-    CHANNEL_PERMS_COMMAND,
+    // CHANNEL_PERMS_COMMAND,
   ]);
 });
