@@ -8,8 +8,9 @@
   },
   "type": "module",
   "scripts": {
-    "start": "node app.js",
-    "dev": "nodemon app.js"
+    "start": "node gamer-pad-helper/app.js",
+    "dev": "nodemon gamer-pad-helper/app.js",
+    "prettier": "npx prettier gamer-pad-helper --write"
   },
   "author": "May Dong",
   "license": "MIT",
@@ -23,6 +24,7 @@
     "npm": "^8.19.2"
   },
   "devDependencies": {
-    "nodemon": "^2.0.15"
+    "nodemon": "^2.0.15",
+    "prettier": "3.1.1"
   }
 }
