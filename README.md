@@ -1,7 +1,7 @@
 # gamer-pad-helper
 
 Closes Gamer Pad voice channel (disconnects users and removes view/join perms) at:
-- 11:59pm every day
+- 12am every day
 - 3pm Saturday
 
 Opens Gamer Pad voice channel at:
